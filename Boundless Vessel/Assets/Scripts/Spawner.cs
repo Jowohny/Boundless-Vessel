@@ -5,6 +5,9 @@ using UnityEngine;
 public class SpawnerScript : MonoBehaviour
 {
     public GameObject cubePrefab;
+    public Transform parentTransform;
+    public Transform spawnerLocation;
+    public int enemyCount;
 
     void Start()
     {
@@ -14,13 +17,16 @@ public class SpawnerScript : MonoBehaviour
 
     private IEnumerator SpawnCubes()
     {
-        while (true) // Loop indefinitely
+        while (enemyCount < 5) // Loop indefinitely
         {
+
             // Instantiate the cube prefab at the spawner's position with no rotation
-            Instantiate(cubePrefab, transform.position, Quaternion.identity);
+            GameObject newObject = Instantiate(cubePrefab, spawnerLocation.position, Quaternion.identity, parentTransform);
+            Instantiate(newObject);
 
             // Wait for 10 seconds before the next spawn
-            yield return new WaitForSeconds(10f);
+            yield return new WaitForSeconds(20f);
+            enemyCount++;
         }
     }
 }

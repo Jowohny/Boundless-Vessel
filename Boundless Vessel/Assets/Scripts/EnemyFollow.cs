@@ -1,16 +1,24 @@
 using UnityEngine;
-using UnityEngine.AI;
 
 public class EnemyFollow : MonoBehaviour
 {
-    public NavMeshAgent enemy;
-    public Transform boatRb;   // Boat's Rigidbody reference
+    public Transform target;
+    public float speed = 1f;
+    public float minYLevel = 2f; // Minimum Y level for the enemy
 
     void Update()
     {
+        // Move towards the target
+        Vector3 targetPosition = Vector3.MoveTowards(transform.position, target.position, speed * Time.deltaTime);
 
-        // Update the agent's destination to the boat's position
-        enemy.SetDestination(boatRb.position);
+        // Check if the new position is below the minimum Y level
+        if (targetPosition.y < minYLevel)
+        {
+            // Set the Y position to the minimum level
+            targetPosition.y = minYLevel;
+        }
 
+        // Update the enemy's position
+        transform.position = targetPosition;
     }
 }
