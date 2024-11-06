@@ -11,7 +11,6 @@ public class BoatController : MonoBehaviour
 
     private void Start()
     {
-        this.enabled = false;
         rb = GetComponent<Rigidbody>();
     }
 

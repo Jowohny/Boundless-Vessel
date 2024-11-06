@@ -10,6 +10,7 @@ public class PlayerInteraction : MonoBehaviour
     void Update()
     {
         CheckInteraction(); // Check for interactables each frame
+
         if (currentInteractable != null)
         {
             currentInteractable.Interact();

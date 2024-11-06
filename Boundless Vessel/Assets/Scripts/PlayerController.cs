@@ -12,6 +12,7 @@ public class PlayerController : MonoBehaviour
 
     public CharacterController characterController;
     public BoatController boatController;
+    public PlaneController planeController;
     public Camera mainCamera;
     public Camera boatCamera;
 
@@ -21,6 +22,16 @@ public class PlayerController : MonoBehaviour
     {
         boatController.enabled = false;
         boatCamera.enabled = false;
+        planeController.enabled = false;
+
+        foreach (GameObject item in items)
+        {
+            Camera cannonCamera = item.GetComponentInChildren<Camera>();
+            if (cannonCamera != null)
+            {
+                cannonCamera.enabled = false;
+            }
+        }
 
         // Start as the character controller
         SetPlayerState(PlayerState.Character);
@@ -35,8 +46,14 @@ public class PlayerController : MonoBehaviour
             {
                 Interact();
             }
-            else
+            else if (currentState == PlayerState.Boat)
             {
+                // If we are in the boat, pressing E should bring us back to character
+                ResumeCharacterControl();
+            }
+            else if (currentState == PlayerState.Cannon)
+            {
+                // If we are in cannon, resume character as well
                 ResumeCharacterControl();
             }
         }
@@ -76,16 +93,19 @@ public class PlayerController : MonoBehaviour
 
     void SetPlayerState(PlayerState newState, int cannonID = -1)
     {
-        currentState = newState;
 
+        currentState = newState;
+        // We don't need the cannon ID logic here for the boat or character state
         switch (newState)
         {
             case PlayerState.Character:
+                // Enable character controller and main camera
                 characterController.enabled = true;
                 mainCamera.enabled = true;
 
                 boatController.enabled = false;
                 boatCamera.enabled = false;
+                planeController.enabled = false;
 
                 // Disable all cannon cameras
                 foreach (GameObject item in items)
@@ -99,8 +119,10 @@ public class PlayerController : MonoBehaviour
                 break;
 
             case PlayerState.Boat:
+                // Enable boat control and camera
                 boatController.enabled = true;
                 boatCamera.enabled = true;
+                planeController.enabled = true;
 
                 characterController.enabled = false;
                 mainCamera.enabled = false;
@@ -117,7 +139,13 @@ public class PlayerController : MonoBehaviour
                 break;
 
             case PlayerState.Cannon:
-                // Enable the specific cannon camera
+                // Disable character, boat, and plane controllers
+                characterController.enabled = false;
+                boatController.enabled = false;
+                mainCamera.enabled = false;
+                boatCamera.enabled = false;
+
+                // Enable specific cannon camera based on the ID
                 if (cannonID >= 0 && cannonID < items.Count)
                 {
                     Camera cannonCamera = items[cannonID].GetComponentInChildren<Camera>();
@@ -126,16 +154,14 @@ public class PlayerController : MonoBehaviour
                         cannonCamera.enabled = true;
                     }
                 }
-
-                characterController.enabled = false;
-                boatController.enabled = false;
-                mainCamera.enabled = false;
-                boatCamera.enabled = false;
                 break;
         }
     }
+
+
     void ResumeCharacterControl()
     {
+        // Switch back to the character control
         SetPlayerState(PlayerState.Character);
     }
 }
