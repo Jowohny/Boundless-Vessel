@@ -2,31 +2,43 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SpawnerScript : MonoBehaviour
+public class EnemySpawner : MonoBehaviour
 {
-    public GameObject cubePrefab;
+    public GameObject enemyPrefab;
     public Transform parentTransform;
     public Transform spawnerLocation;
-    public int enemyCount;
+    public int maxEnemiesToSpawn = 5; // Max enemies to spawn in this section
+    public float spawnDelay = 30f;    // Delay between each spawn
+
+    private int enemyCount = 0;       // Keep track of how many enemies have spawned
 
     void Start()
     {
         // Start the spawning process
-        StartCoroutine(SpawnCubes());
+        StartCoroutine(SpawnEnemies());
     }
 
-    private IEnumerator SpawnCubes()
+    public IEnumerator SpawnEnemies()
     {
-        while (enemyCount < 5) // Loop indefinitely
+        while (enemyCount < maxEnemiesToSpawn)
         {
+            // Instantiate the enemy prefab at the spawner's position with no rotation
+            GameObject newEnemy = Instantiate(enemyPrefab, spawnerLocation.position, Quaternion.identity, parentTransform);
 
-            // Instantiate the cube prefab at the spawner's position with no rotation
-            GameObject newObject = Instantiate(cubePrefab, spawnerLocation.position, Quaternion.identity, parentTransform);
-            Instantiate(newObject);
+            enemyCount++; // Increment enemy count
 
-            // Wait for 10 seconds before the next spawn
-            yield return new WaitForSeconds(20f);
-            enemyCount++;
+            // Wait for the next spawn delay
+            yield return new WaitForSeconds(spawnDelay);
         }
+    }
+
+    public void DestroyAllEnemies()
+    {
+        // Destroy all spawned enemies under this spawner
+        foreach (Transform child in parentTransform)
+        {
+            Destroy(child.gameObject);
+        }
+        enemyCount = 0; // Reset enemy count when enemies are destroyed
     }
 }

@@ -7,6 +7,11 @@ TagManager:
   - Interactable
   - Cannon
   - Steering
+  - Enemy
+  - LevelDivider
+  - Boat
+  - Divider1
+  - Divider2
   layers:
   - Default
   - TransparentFX
