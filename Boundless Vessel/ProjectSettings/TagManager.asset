@@ -12,6 +12,8 @@ TagManager:
   - Boat
   - Divider1
   - Divider2
+  - Watch
+  - Obstacle
   layers:
   - Default
   - TransparentFX
@@ -20,7 +22,7 @@ TagManager:
   - Water
   - UI
   - Ground
-  - 
+  - FogBarrier
   - 
   - 
   - 

@@ -2,33 +2,60 @@
 
 public class FirstPersonCamera : MonoBehaviour
 {
-    // Variables for camera rotation
-    public float mouseSensitivity = 100f; // Adjusts how sensitive the mouse input is
-    public Transform playerBody; // Reference to the player's body to rotate it with the camera
+    public float mouseSensitivity = 100f; // Adjust sensitivity
+    public Transform playerBody; // Reference to the player's body for horizontal rotation
 
-    private float xRotation = 0f; // Tracks up-and-down rotation to limit vertical movement
+    private float xRotation = 0f; // Tracks vertical rotation to limit looking up/down
+
+    [Header("Custom Input Settings")]
+    public bool isPlayerOne = true; // Toggle for Player 1's default mouse controls
+    public KeyCode lookUpKey = KeyCode.None;
+    public KeyCode lookDownKey = KeyCode.None;
+    public KeyCode lookLeftKey = KeyCode.None;
+    public KeyCode lookRightKey = KeyCode.None;
 
     void Start()
     {
-        // Locks the cursor to the center of the screen and hides it
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false; // Ensures the cursor is hidden
+        if (isPlayerOne)
+        {
+            // Locks the cursor for Player 1
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
     }
 
     void Update()
     {
-        // Get mouse input for looking around
-        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
-        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
+        if (isPlayerOne)
+        {
+            // Mouse-based controls for Player 1
+            float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
+            float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
 
-        // Rotate the player's body horizontally based on mouseX (left and right movement)
-        playerBody.Rotate(Vector3.up * mouseX);
+            playerBody.Rotate(Vector3.up * mouseX); // Horizontal rotation
 
-        // Calculate vertical rotation (looking up and down)
-        xRotation -= mouseY;
-        xRotation = Mathf.Clamp(xRotation, -60f, 60f); // Prevents over-rotating up or down
+            xRotation -= mouseY; // Vertical rotation
+            xRotation = Mathf.Clamp(xRotation, -60f, 60f);
+            transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+        }
+        else
+        {
+            // Keyboard-based camera movement for Player 2 and Player 3
+            float horizontal = 0f;
+            float vertical = 0f;
 
-        // Apply vertical rotation to the camera (up and down movement)
-        transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f); // Only apply vertical rotation to the camera
+            if (Input.GetKey(lookUpKey)) vertical = -1f;
+            if (Input.GetKey(lookDownKey)) vertical = 1f;
+            if (Input.GetKey(lookLeftKey)) horizontal = -1f;
+            if (Input.GetKey(lookRightKey)) horizontal = 1f;
+
+            float rotationSpeed = mouseSensitivity * Time.deltaTime;
+
+            playerBody.Rotate(Vector3.up * horizontal * rotationSpeed); // Horizontal rotation
+
+            xRotation += vertical * rotationSpeed; // Vertical rotation
+            xRotation = Mathf.Clamp(xRotation, -60f, 60f);
+            transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+        }
     }
 }

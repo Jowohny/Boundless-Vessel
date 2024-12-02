@@ -12,6 +12,8 @@ public class EnemyFollow : MonoBehaviour
 
     [SerializeField] FloatingHealthBar healthbar;
 
+
+    public BoatGUI boatGUI;
     protected Animator animator; // Reference to the Animator component
 
     protected virtual void Start()
@@ -82,5 +84,6 @@ public class EnemyFollow : MonoBehaviour
     {
         animator.Play("Die");
         Destroy(gameObject, 0.1f); // Delay for animation
+        boatGUI.AddKill();
     }
 }

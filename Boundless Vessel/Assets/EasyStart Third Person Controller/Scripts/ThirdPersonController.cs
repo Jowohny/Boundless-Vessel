@@ -1,10 +1,5 @@
 ﻿using UnityEngine;
 
-/// <summary>
-/// Main script for third-person movement of the character in the game.
-/// Make sure that the object that will receive this script (the player) 
-/// has the Player tag and the Character Controller component.
-/// </summary>
 public class ThirdPersonController : MonoBehaviour
 {
     [Tooltip("Speed at which the character moves. It is not affected by gravity or jumping.")]
@@ -24,14 +19,15 @@ public class ThirdPersonController : MonoBehaviour
     // Player states
     bool isJumping = false;
     bool isSprinting = false;
-    bool isCrouching = false;
-
-    // Inputs
-    float inputHorizontal;
-    float inputVertical;
-    bool inputJump;
-    bool inputCrouch;
-    bool inputSprint;
+ 
+    // Custom key bindings for each player
+    [Header("Player Key Bindings")]
+    public KeyCode moveForward = KeyCode.W;
+    public KeyCode moveBackward = KeyCode.S;
+    public KeyCode moveLeft = KeyCode.A;
+    public KeyCode moveRight = KeyCode.D;
+    public KeyCode jumpKey = KeyCode.Space;
+    public KeyCode sprintKey = KeyCode.LeftShift;
 
     Animator animator;
     CharacterController cc;
@@ -41,73 +37,65 @@ public class ThirdPersonController : MonoBehaviour
         cc = GetComponent<CharacterController>();
         animator = GetComponent<Animator>();
 
-        // Message informing the user that they forgot to add an animator
         if (animator == null)
-            Debug.LogWarning("Hey buddy, you don't have the Animator component in your player. Without it, the animations won't work.");
+            Debug.LogWarning("Animator component is missing. Animations will not work.");
     }
 
-    // Update is only being used here to identify keys and trigger animations
     void Update()
     {
-        // Input checkers
-        inputHorizontal = Input.GetAxis("Horizontal");
-        inputVertical = Input.GetAxis("Vertical");
-        inputJump = Input.GetAxis("Jump") == 1f;
-        inputSprint = Input.GetAxis("Fire3") == 1f;
-        inputCrouch = Input.GetKeyDown(KeyCode.LeftControl) || Input.GetKeyDown(KeyCode.JoystickButton1);
 
-        // Check if you pressed the crouch input key and change the player's state
-        if (inputCrouch)
-            isCrouching = !isCrouching;
+        // Update animations
+        UpdateAnimations();
 
-        // Run and Crouch animation
-        if (cc.isGrounded && animator != null)
-        {
-            // Crouch
-            animator.SetBool("crouch", isCrouching);
-
-            // Run
-            float minimumSpeed = 0.9f;
-            animator.SetBool("run", cc.velocity.magnitude > minimumSpeed);
-
-            // Sprint
-            isSprinting = cc.velocity.magnitude > minimumSpeed && inputSprint;
-            animator.SetBool("sprint", isSprinting);
-        }
-
-        // Jump animation
-        if (animator != null)
-            animator.SetBool("air", cc.isGrounded == false);
-
-        // Handle can jump or not
-        if (inputJump && cc.isGrounded)
+        // Handle jump input
+        if (Input.GetKey(jumpKey) && cc.isGrounded)
         {
             isJumping = true;
         }
 
+        // Movement
+        HandleMovement();
         HeadHittingDetect();
     }
 
-    // FixedUpdate is responsible for applying movements and actions to the player
-    private void FixedUpdate()
+    void UpdateAnimations()
     {
-        // Sprinting velocity boost or crouching decelerate
+        if (cc.isGrounded && animator != null)
+        {
+
+            float minimumSpeed = 0.1f; // Minimum speed to trigger run animation
+            animator.SetBool("run", cc.velocity.magnitude > minimumSpeed);
+
+            isSprinting = cc.velocity.magnitude > minimumSpeed && Input.GetKey(sprintKey);
+            animator.SetBool("sprint", isSprinting);
+        }
+
+        if (animator != null)
+            animator.SetBool("air", !cc.isGrounded);
+    }
+
+    void HandleMovement()
+    {
         float velocityAddition = 0;
         if (isSprinting)
             velocityAddition = sprintAddition;
-        if (isCrouching)
-            velocityAddition = -(velocity * 0.50f); // -50% velocity
 
-        // Direction movement
-        float directionX = inputHorizontal * (velocity + velocityAddition) * Time.deltaTime;
-        float directionZ = inputVertical * (velocity + velocityAddition) * Time.deltaTime;
-        float directionY = 0;
+        Vector3 direction = Vector3.zero;
 
-        // Jump handler
+        // Input-based movement
+        if (Input.GetKey(moveForward)) direction += transform.forward;
+        if (Input.GetKey(moveBackward)) direction -= transform.forward;
+        if (Input.GetKey(moveLeft)) direction -= transform.right;
+        if (Input.GetKey(moveRight)) direction += transform.right;
+
+        direction.Normalize(); // Ensure consistent movement speed when moving diagonally
+        direction *= (velocity + velocityAddition) * Time.deltaTime;
+
         if (isJumping)
         {
-            directionY = Mathf.SmoothStep(jumpForce, jumpForce * 0.30f, jumpElapsedTime / jumpTime) * Time.deltaTime;
+            direction.y = Mathf.SmoothStep(jumpForce, jumpForce * 0.3f, jumpElapsedTime / jumpTime) * Time.deltaTime;
             jumpElapsedTime += Time.deltaTime;
+
             if (jumpElapsedTime >= jumpTime)
             {
                 isJumping = false;
@@ -115,27 +103,10 @@ public class ThirdPersonController : MonoBehaviour
             }
         }
 
-        // Add gravity to Y axis
-        directionY = directionY - gravity * Time.deltaTime;
-
-        // --- Character movement without rotation ---
-        Vector3 forward = Camera.main.transform.forward;
-        Vector3 right = Camera.main.transform.right;
-
-        forward.y = 0;
-        right.y = 0;
-
-        forward.Normalize();
-        right.Normalize();
-
-        // Calculate movement direction based on input
-        Vector3 movement = (forward * directionZ) + (right * directionX) + (Vector3.up * directionY);
-        cc.Move(movement);
-
-        // --- End movement ---
+        direction.y -= gravity * Time.deltaTime; // Apply gravity
+        cc.Move(direction);
     }
 
-    // This function makes the character end his jump if he hits his head on something
     void HeadHittingDetect()
     {
         float headHitDistance = 1.1f;

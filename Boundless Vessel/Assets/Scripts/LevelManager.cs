@@ -69,7 +69,11 @@ public class LevelManager : MonoBehaviour
     {
         foreach (GameObject enemy in enemies)
         {
-            Destroy(enemy); // Destroy each enemy
+            // Check if the enemy is not null and already destroyed before attempting to destroy it
+            if (enemy != null)
+            {
+                Destroy(enemy); // Destroy each enemy
+            }
         }
     }
 
@@ -85,8 +89,12 @@ public class LevelManager : MonoBehaviour
     {
         foreach (GameObject enemy in enemies)
         {
-            // Instantiate the enemy at its spawn location, if needed
-            Instantiate(enemy, enemy.transform.position, Quaternion.identity);
+            // Check if the enemy is not null before spawning
+            if (enemy != null)
+            {
+                // Instantiate the enemy at its spawn location, if needed
+                Instantiate(enemy, enemy.transform.position, Quaternion.identity);
+            }
         }
     }
 }
